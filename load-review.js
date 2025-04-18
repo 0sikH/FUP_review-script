@@ -2,7 +2,7 @@
   const params = new URLSearchParams(window.location.search);
   const productId = params.get('productId') || 'default';
 
-  const response = await fetch('https://your-server.com/sample_reviews.json');
+  const response = await fetch('https://fup-review-script.vercel.app/converted_reviews.json');
   const reviews = await response.json();
 
   const container = document.getElementById("review-box");
