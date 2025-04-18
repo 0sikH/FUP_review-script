@@ -1,0 +1,18 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>리뷰 위젯</title>
+</head>
+<body style="margin:0; padding:20px; font-family: sans-serif;">
+  <h3 style="font-size: 18px; color: #333;">구매자 리뷰</h3>
+  <div id="review-box">리뷰 불러오는 중...</div>
+
+  <script>
+    const script = document.createElement('script');
+    script.src = 'https://fup-review-script.vercel.app/load-review.js';
+    document.body.appendChild(script);
+  </script>
+</body>
+</html>
