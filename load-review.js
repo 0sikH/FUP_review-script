@@ -1,7 +1,5 @@
-(async () => {
-  const params = new URLSearchParams(window.location.search);
-  const productId = params.get('productId') || 'default';
 
+(async () => {
   const response = await fetch('https://fup-review-script.vercel.app/converted_reviews.json');
   const reviews = await response.json();
 
@@ -9,10 +7,12 @@
   if (!container) return;
 
   container.innerHTML = reviews.map(r => `
-    <div class="review-item" style="margin-bottom: 20px; padding: 10px; border-bottom: 1px solid #ddd;">
-      <p style="font-size: 16px; color: #444;"><strong>${"★".repeat(r.rating)}</strong></p>
-      <p style="font-size: 14px;">${r.content}</p>
-      ${r.image ? `<img src="${r.image}" width="120" style="margin-top:10px;">` : ""}
+    <div class="review-item">
+      <div class="review-text">
+        <div class="review-rating">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+        <div class="review-content">${r.content}</div>
+      </div>
+      ${r.image ? `<div class="review-image"><img src="${r.image}" /></div>` : ""}
     </div>
   `).join('');
 })();
