@@ -1,0 +1,40 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>리뷰 위젯</title>
+  <style>
+    body { font-family: 'Noto Sans KR', sans-serif; background: #fff; color: #333; margin: 0; padding: 20px; }
+    .review-score { font-size: 24px; font-weight: bold; color: #f39800; }
+    .review-item { border-top: 1px solid #ddd; padding: 16px 0; }
+    .review-stars { color: #f39800; font-size: 14px; }
+    .review-text { margin: 6px 0; font-size: 14px; line-height: 1.6; }
+    .review-images img { width: 80px; height: 80px; object-fit: cover; margin-right: 6px; border-radius: 4px; }
+    .review-meta { font-size: 12px; color: #999; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <div class="review-score" id="avg-score">로딩 중...</div>
+  <div id="review-list">리뷰 불러오는 중...</div>
+
+  <script>
+    (async () => {
+      const res = await fetch('converted_reviews_sample.json');
+      const reviews = await res.json();
+      const avg = (reviews.reduce((a, b) => a + b.rating, 0) / reviews.length).toFixed(1);
+      document.getElementById('avg-score').innerText = `★ ${avg} / 5.0`;
+
+      const list = document.getElementById('review-list');
+      list.innerHTML = reviews.map(r => `
+        <div class="review-item">
+          <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+          <div class="review-text">${r.content}</div>
+          <div class="review-images">${r.images.map(img => `<img src="${img}" />`).join('')}</div>
+          <div class="review-meta">작성자: ${r.reviewer} / 작성일: ${r.date}</div>
+        </div>
+      `).join('');
+    })();
+  </script>
+</body>
+</html>
