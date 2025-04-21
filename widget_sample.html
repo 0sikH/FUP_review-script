@@ -20,7 +20,7 @@
 
   <script>
     (async () => {
-      const res = await fetch('converted_reviews_sample.json');
+      const res = await fetch('converted_reviews_with_date.json');
       const reviews = await res.json();
       const avg = (reviews.reduce((a, b) => a + b.rating, 0) / reviews.length).toFixed(1);
       document.getElementById('avg-score').innerText = `★ ${avg} / 5.0`;
