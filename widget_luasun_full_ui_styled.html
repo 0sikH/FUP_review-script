@@ -1,0 +1,94 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>REVIEW 위젯</title>
+  <style>
+    body { font-family: 'Noto Sans KR', sans-serif; background: #fff; color: #333; margin: 0; padding: 20px; }
+    h2 { font-size: 20px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 10px; }
+    .review-summary { display: flex; align-items: center; gap: 20px; margin: 20px 0; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+    .review-score { font-size: 36px; font-weight: bold; color: #f39800; }
+    .review-bars { flex: 1; }
+    .bar { display: flex; align-items: center; margin-bottom: 6px; }
+    .bar-label { width: 60px; font-size: 13px; color: #888; }
+    .bar-fill { flex: 1; height: 6px; background: #eee; margin: 0 8px; position: relative; }
+    .bar-fill::after { content: ''; position: absolute; left: 0; top: 0; height: 6px; background: #f39800; width: var(--value); }
+    .bar-count { font-size: 12px; color: #666; }
+    .photo-gallery { display: flex; overflow-x: auto; gap: 8px; margin-bottom: 20px; }
+    .photo-gallery img { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; }
+    .sort-tabs { display: flex; gap: 10px; margin: 20px 0; font-size: 14px; }
+    .sort-tabs button { background: #f8f8f8; border: 1px solid #ccc; padding: 6px 12px; cursor: pointer; border-radius: 4px; }
+    .review-list { border-top: 1px solid #ddd; }
+    .review-item { padding: 20px 0; border-bottom: 1px solid #eee; }
+    .review-stars { color: #f39800; font-size: 14px; margin-bottom: 6px; }
+    .review-text { font-size: 14px; line-height: 1.6; margin-bottom: 8px; }
+    .review-images { display: flex; gap: 8px; margin-top: 8px; }
+    .review-images img { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; }
+    .review-meta { font-size: 12px; color: #999; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <h2>REVIEW (<span id="review-count">0</span>)</h2>
+
+  <div class="review-summary">
+    <div class="review-score" id="average-score">★ 0.0</div>
+    <div class="review-bars" id="review-bars"></div>
+  </div>
+
+  <div class="photo-gallery" id="photo-gallery"></div>
+
+  <div class="sort-tabs">
+    <button onclick="sortReviews('date')">주문순</button>
+    <button onclick="sortReviews('latest')">최신순</button>
+    <button onclick="sortReviews('rating')">별점순</button>
+  </div>
+
+  <div class="review-list" id="review-list">리뷰 불러오는 중...</div>
+
+  <script>
+    const reviews = [{"product_name": "[SPF50+PA++++ 25mlx2개 혼합자차]루아셀 일루미네이팅화이트레이블선크림", "rating": 5, "images": ["https://phinf.pstatic.net/checkout.phinf/20241211_105/1733894991122r9eOQ_JPEG/1733894942534.jpg"], "content": "휴대용으로 정말 잘 들고다니면서 사용합니다^^", "reviewer": "shun******", "date": "2024-12-11"}, {"product_name": "[SPF50+PA++++ 25mlx2개 혼합자차]루아셀 일루미네이팅화이트레이블선크림", "rating": 5, "images": [], "content": "백탁현상없이 촉촉해요.", "reviewer": "ju51****", "date": "2024-11-13"}, {"product_name": "[SPF50+PA++++ 25mlx2개 혼합자차]루아셀 일루미네이팅화이트레이블선크림", "rating": 5, "images": [], "content": "선크림 고를때 가장고민은 백탁현상인데\n이제품은 에센스처럼 부드럽고 백탁현상이 없어 좋은거같습니다.", "reviewer": "sooe******", "date": "2024-11-12"}, {"product_name": "[SPF50+PA++++ 25mlx2개 혼합자차]루아셀 일루미네이팅화이트레이블선크림", "rating": 5, "images": ["https://phinf.pstatic.net/checkout.phinf/20241108_211/17310716665274P4y4_JPEG/1000002691.jpg"], "content": "날은 추워도 자외선은 여전히 강해서 제 선크림도 구매했어요 손등에 발라봤을때 부드러워서 너무맘에들어요 디자인도 고급져서 굿굿 입니다 😊 👍 👍", "reviewer": "shun******", "date": "2024-11-08"}, {"product_name": "[SPF50+PA++++ 25mlx2개 혼합자차]루아셀 일루미네이팅화이트레이블선크림", "rating": 5, "images": ["https://phinf.pstatic.net/checkout.phinf/20241108_120/17310214236726ofli_JPEG/20241108_081624.jpg"], "content": "요즘 같이 자외선이 강한 날씨에는 선크림이 필수라는데 백탁없는 제품 검색하다가 루아셀 선크림 구매했어요!! 일단 눈이 안 따갑고 흡수가 잘되어서 좋아요", "reviewer": "whyn*********", "date": "2024-11-08"}];
+
+    document.getElementById("review-count").innerText = reviews.length;
+    const avg = (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1);
+    document.getElementById("average-score").innerText = `★ ${avg}`;
+
+    const ratingCount = {{ 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }};
+    reviews.forEach(r => {{ ratingCount[r.rating]++; }});
+    const max = Math.max(...Object.values(ratingCount));
+    document.getElementById("review-bars").innerHTML = [5,4,3,2,1].map(star => `
+      <div class="bar">
+        <span class="bar-label">${{star}}점</span>
+        <div class="bar-fill" style="--value:${{(ratingCount[star]/max)*100}}%"></div>
+        <span class="bar-count">${{ratingCount[star]}}</span>
+      </div>`).join('');
+
+    const gallery = document.getElementById("photo-gallery");
+    const allImages = reviews.flatMap(r => r.images || []);
+    gallery.innerHTML = allImages.slice(0, 12).map(img => `<img src="${{img}}" alt="썸네일">`).join('');
+
+    function renderReviewList(sorted) {{
+      document.getElementById("review-list").innerHTML = sorted.map(r => `
+        <div class="review-item">
+          <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+          <div class="review-text">${r.content}</div>
+          ${(r.images && r.images.length) ? `<div class="review-images">` + r.images.map(img => `<img src="${img}">`).join('') + `</div>` : ''}
+          <div class="review-meta">작성자: ${r.reviewer} / 작성일: ${r.date}</div>
+        </div>
+      `).join('');
+    }}
+
+    function sortReviews(type) {{
+      const sorted = [...reviews];
+      if (type === 'date' || type === 'latest') {{
+        sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
+      }} else if (type === 'rating') {{
+        sorted.sort((a, b) => b.rating - a.rating);
+      }}
+      renderReviewList(sorted);
+    }}
+
+    sortReviews('date');
+  </script>
+</body>
+</html>
