@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -47,27 +46,36 @@
   <div class="review-list" id="review-list">리뷰 불러오는 중...</div>
 
   <script>
-    const reviews = [{"product_name": "[SPF50+PA++++ 25mlx2개 혼합자차]루아셀 일루미네이팅화이트레이블선크림", "rating": 5, "images": ["https://phinf.pstatic.net/checkout.phinf/20241211_105/1733894991122r9eOQ_JPEG/1733894942534.jpg"], "content": "휴대용으로 정말 잘 들고다니면서 사용합니다^^", "reviewer": "shun******", "date": "2024-12-11"}, {"product_name": "[SPF50+PA++++ 25mlx2개 혼합자차]루아셀 일루미네이팅화이트레이블선크림", "rating": 5, "images": [], "content": "백탁현상없이 촉촉해요.", "reviewer": "ju51****", "date": "2024-11-13"}, {"product_name": "[SPF50+PA++++ 25mlx2개 혼합자차]루아셀 일루미네이팅화이트레이블선크림", "rating": 5, "images": [], "content": "선크림 고를때 가장고민은 백탁현상인데\n이제품은 에센스처럼 부드럽고 백탁현상이 없어 좋은거같습니다.", "reviewer": "sooe******", "date": "2024-11-12"}, {"product_name": "[SPF50+PA++++ 25mlx2개 혼합자차]루아셀 일루미네이팅화이트레이블선크림", "rating": 5, "images": ["https://phinf.pstatic.net/checkout.phinf/20241108_211/17310716665274P4y4_JPEG/1000002691.jpg"], "content": "날은 추워도 자외선은 여전히 강해서 제 선크림도 구매했어요 손등에 발라봤을때 부드러워서 너무맘에들어요 디자인도 고급져서 굿굿 입니다 😊 👍 👍", "reviewer": "shun******", "date": "2024-11-08"}, {"product_name": "[SPF50+PA++++ 25mlx2개 혼합자차]루아셀 일루미네이팅화이트레이블선크림", "rating": 5, "images": ["https://phinf.pstatic.net/checkout.phinf/20241108_120/17310214236726ofli_JPEG/20241108_081624.jpg"], "content": "요즘 같이 자외선이 강한 날씨에는 선크림이 필수라는데 백탁없는 제품 검색하다가 루아셀 선크림 구매했어요!! 일단 눈이 안 따갑고 흡수가 잘되어서 좋아요", "reviewer": "whyn*********", "date": "2024-11-08"}];
+    let reviews = [];
 
-    document.getElementById("review-count").innerText = reviews.length;
-    const avg = (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1);
-    document.getElementById("average-score").innerText = `★ ${avg}`;
+    fetch('converted_reviews_with_date.json')
+      .then(response => response.json())
+      .then(data => {
+        reviews = data;
+        document.getElementById("review-count").innerText = reviews.length;
 
-    const ratingCount = {{ 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }};
-    reviews.forEach(r => {{ ratingCount[r.rating]++; }});
-    const max = Math.max(...Object.values(ratingCount));
-    document.getElementById("review-bars").innerHTML = [5,4,3,2,1].map(star => `
-      <div class="bar">
-        <span class="bar-label">${{star}}점</span>
-        <div class="bar-fill" style="--value:${{(ratingCount[star]/max)*100}}%"></div>
-        <span class="bar-count">${{ratingCount[star]}}</span>
-      </div>`).join('');
+        const avg = (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1);
+        document.getElementById("average-score").innerText = `★ ${avg}`;
 
-    const gallery = document.getElementById("photo-gallery");
-    const allImages = reviews.flatMap(r => r.images || []);
-    gallery.innerHTML = allImages.slice(0, 12).map(img => `<img src="${{img}}" alt="썸네일">`).join('');
+        const ratingCount = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+        reviews.forEach(r => { ratingCount[r.rating]++; });
+        const max = Math.max(...Object.values(ratingCount));
 
-    function renderReviewList(sorted) {{
+        document.getElementById("review-bars").innerHTML = [5,4,3,2,1].map(star => `
+          <div class="bar">
+            <span class="bar-label">${star}점</span>
+            <div class="bar-fill" style="--value:${(ratingCount[star]/max)*100}%"></div>
+            <span class="bar-count">${ratingCount[star]}</span>
+          </div>`).join('');
+
+        const gallery = document.getElementById("photo-gallery");
+        const allImages = reviews.flatMap(r => r.images || []);
+        gallery.innerHTML = allImages.slice(0, 12).map(img => `<img src="${img}" alt="썸네일">`).join('');
+
+        sortReviews('date');
+      });
+
+    function renderReviewList(sorted) {
       document.getElementById("review-list").innerHTML = sorted.map(r => `
         <div class="review-item">
           <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
@@ -76,19 +84,17 @@
           <div class="review-meta">작성자: ${r.reviewer} / 작성일: ${r.date}</div>
         </div>
       `).join('');
-    }}
+    }
 
-    function sortReviews(type) {{
+    function sortReviews(type) {
       const sorted = [...reviews];
-      if (type === 'date' || type === 'latest') {{
+      if (type === 'date' || type === 'latest') {
         sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
-      }} else if (type === 'rating') {{
+      } else if (type === 'rating') {
         sorted.sort((a, b) => b.rating - a.rating);
-      }}
+      }
       renderReviewList(sorted);
-    }}
-
-    sortReviews('date');
+    }
   </script>
 </body>
 </html>
