@@ -42,9 +42,9 @@
   <div class="photo-gallery" id="photo-gallery"></div>
 
   <div class="sort-tabs">
-    <button id="btn-date" onclick="sortReviews('date')">주문순</button>
+    <button id="btn-photo" onclick="togglePhotoSort()">포토리뷰</button>
     <button id="btn-latest" onclick="toggleLatestSort()">최신순 ▼</button>
-    <button id="btn-rating" onclick="sortReviews('rating')">별점순</button>
+    <button id="btn-rating" onclick="toggleRatingSort()">별점순 ▼</button>
   </div>
 
   <div class="review-list" id="review-list">리뷰 불러오는 중...</div>
@@ -52,13 +52,16 @@
 
   <script>
     let reviews = [];
-    let currentSortType = 'date';
     let currentPage = 1;
     const REVIEWS_PER_PAGE = 4;
+
+    let currentSortType = 'latest';
     let isLatestDesc = true;
+    let isRatingDesc = true;
+    let isPhotoFilter = false;
 
     fetch('converted_reviews_with_date.json')
-      .then(response => response.json())
+      .then(res => res.json())
       .then(data => {
         reviews = data;
         document.getElementById("review-count").innerText = reviews.length;
@@ -76,43 +79,62 @@
             <span class="bar-count">${ratingCount[star]}</span>
           </div>`).join('');
 
-        const gallery = document.getElementById("photo-gallery");
         const allImages = reviews.flatMap(r => r.images || []);
-        gallery.innerHTML = allImages.slice(0, 12).map(img => `<img src="${img}" alt="썸네일">`).join('');
+        document.getElementById("photo-gallery").innerHTML = allImages.slice(0, 12).map(img => `<img src="${img}" alt="썸네일">`).join('');
 
-        sortReviews('date', true);
+        sortAndRender();
       });
-
-    function sortReviews(type, resetPage = true) {
-      if (resetPage) currentPage = 1;
-      currentSortType = type;
-
-      ['date', 'latest', 'rating'].forEach(t => {
-        const btn = document.getElementById(`btn-${t}`);
-        if (btn) btn.classList.remove('active');
-      });
-      const activeBtn = document.getElementById(`btn-${type}`);
-      if (activeBtn) activeBtn.classList.add('active');
-
-      let sorted = [...reviews];
-      if (type === 'date') {
-        sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
-      } else if (type === 'latest') {
-        sorted.sort((a, b) =>
-          isLatestDesc ? new Date(b.date) - new Date(a.date) : new Date(a.date) - new Date(b.date)
-        );
-      } else if (type === 'rating') {
-        sorted.sort((a, b) => b.rating - a.rating);
-      }
-
-      renderReviewList(sorted);
-    }
 
     function toggleLatestSort() {
       isLatestDesc = !isLatestDesc;
-      const btn = document.getElementById("btn-latest");
-      btn.innerText = isLatestDesc ? "최신순 ▼" : "최신순 ▲";
-      sortReviews('latest');
+      currentSortType = 'latest';
+      currentPage = 1;
+      document.getElementById("btn-latest").innerText = isLatestDesc ? "최신순 ▼" : "최신순 ▲";
+      setActiveButton('btn-latest');
+      sortAndRender();
+    }
+
+    function toggleRatingSort() {
+      isRatingDesc = !isRatingDesc;
+      currentSortType = 'rating';
+      currentPage = 1;
+      document.getElementById("btn-rating").innerText = isRatingDesc ? "별점순 ▼" : "별점순 ▲";
+      setActiveButton('btn-rating');
+      sortAndRender();
+    }
+
+    function togglePhotoSort() {
+      isPhotoFilter = !isPhotoFilter;
+      currentSortType = 'photo';
+      currentPage = 1;
+      setActiveButton('btn-photo');
+      sortAndRender();
+    }
+
+    function setActiveButton(id) {
+      ['btn-photo', 'btn-latest', 'btn-rating'].forEach(btnId => {
+        document.getElementById(btnId).classList.remove('active');
+      });
+      document.getElementById(id).classList.add('active');
+    }
+
+    function sortAndRender() {
+      let data = [...reviews];
+
+      if (isPhotoFilter) {
+        data = data.filter(r => r.images && r.images.length);
+        data.sort((a, b) => new Date(b.date) - new Date(a.date));
+      } else {
+        if (currentSortType === 'latest') {
+          data.sort((a, b) =>
+            isLatestDesc ? new Date(b.date) - new Date(a.date) : new Date(a.date) - new Date(b.date));
+        } else if (currentSortType === 'rating') {
+          data.sort((a, b) =>
+            isRatingDesc ? b.rating - a.rating : a.rating - b.rating);
+        }
+      }
+
+      renderReviewList(data);
     }
 
     function renderReviewList(sorted) {
@@ -142,7 +164,7 @@
         if (i === currentPage) btn.classList.add("active");
         btn.onclick = () => {
           currentPage = i;
-          sortReviews(currentSortType, false);
+          sortAndRender();
         };
         pagination.appendChild(btn);
       }
