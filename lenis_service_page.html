@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>와이낫 서비스</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Lenis + GSAP CDN -->
+  <script src="https://unpkg.com/@studio-freight/lenis@1.0.18/bundled/lenis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #ffffff;
+      color: #111;
+      overflow-x: hidden;
+    }
+
+    section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 100px 20px;
+      position: relative;
+    }
+
+    h2 {
+      font-size: 3rem;
+      margin-bottom: 20px;
+    }
+
+    p {
+      font-size: 1.3rem;
+      max-width: 600px;
+      text-align: center;
+    }
+
+    img {
+      width: 40%;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Section 1 -->
+  <section class="panel">
+    <h2>Global Business Consulting</h2>
+    <p>해외 진출, 수출 지원, 공공 프로젝트까지, 전략적 접근을 돕습니다.</p>
+    <img src="image1.jpg" alt="글로벌 컨설팅">
+  </section>
+
+  <!-- Section 2 -->
+  <section class="panel">
+    <h2>AI 콘텐츠 크리에이션</h2>
+    <p>AI 기술 기반의 영상과 이미지 콘텐츠를 기획·제작합니다.</p>
+    <img src="image2.jpg" alt="AI 콘텐츠 제작">
+  </section>
+
+  <!-- Section 3 -->
+  <section class="panel">
+    <h2>라이프스타일 브랜드 운영</h2>
+    <p>의류 브랜드부터 브랜딩까지, 콘텐츠 기반의 유통 전개</p>
+    <img src="image3.jpg" alt="의류 브랜드">
+  </section>
+
+  <!-- Lenis Scroll Script -->
+  <script>
+    const lenis = new Lenis()
+
+    function raf(time) {
+      lenis.raf(time)
+      requestAnimationFrame(raf)
+    }
+
+    requestAnimationFrame(raf)
+  </script>
+
+  <!-- GSAP ScrollTrigger (예시 애니메이션) -->
+  <script>
+    gsap.registerPlugin(ScrollTrigger)
+
+    gsap.utils.toArray(".panel").forEach(panel => {
+      gsap.from(panel, {
+        scrollTrigger: {
+          trigger: panel,
+          start: "top 80%",
+          toggleActions: "play none none none"
+        },
+        opacity: 0,
+        y: 100,
+        duration: 1,
+        ease: "power2.out"
+      })
+    })
+  </script>
+
+</body>
+</html>
