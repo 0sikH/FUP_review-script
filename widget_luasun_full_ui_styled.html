@@ -18,6 +18,7 @@
     .photo-gallery img { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; }
     .sort-tabs { display: flex; gap: 10px; margin: 20px 0; font-size: 14px; }
     .sort-tabs button { background: #f8f8f8; border: 1px solid #ccc; padding: 6px 12px; cursor: pointer; border-radius: 4px; }
+    .sort-tabs button.active { background: #f39800; color: #fff; border-color: #f39800; }
     .review-list { border-top: 1px solid #ddd; }
     .review-item { padding: 20px 0; border-bottom: 1px solid #eee; }
     .review-stars { color: #f39800; font-size: 14px; margin-bottom: 6px; }
@@ -25,6 +26,9 @@
     .review-images { display: flex; gap: 8px; margin-top: 8px; }
     .review-images img { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; }
     .review-meta { font-size: 12px; color: #999; margin-top: 6px; }
+    .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 20px; }
+    .pagination button { background: #fff; border: 1px solid #ccc; padding: 6px 12px; cursor: pointer; border-radius: 4px; }
+    .pagination button.active { background: #f39800; color: #fff; border-color: #f39800; }
   </style>
 </head>
 <body>
@@ -38,15 +42,19 @@
   <div class="photo-gallery" id="photo-gallery"></div>
 
   <div class="sort-tabs">
-    <button onclick="sortReviews('date')">주문순</button>
-    <button onclick="sortReviews('latest')">최신순</button>
-    <button onclick="sortReviews('rating')">별점순</button>
+    <button id="btn-date" onclick="sortReviews('date')">주문순</button>
+    <button id="btn-latest" onclick="sortReviews('latest')">최신순</button>
+    <button id="btn-rating" onclick="sortReviews('rating')">별점순</button>
   </div>
 
   <div class="review-list" id="review-list">리뷰 불러오는 중...</div>
+  <div class="pagination" id="pagination"></div>
 
   <script>
     let reviews = [];
+    let currentSortType = 'date';
+    let currentPage = 1;
+    const REVIEWS_PER_PAGE = 4;
 
     fetch('converted_reviews_with_date.json')
       .then(response => response.json())
@@ -60,7 +68,6 @@
         const ratingCount = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
         reviews.forEach(r => { ratingCount[r.rating]++; });
         const max = Math.max(...Object.values(ratingCount));
-
         document.getElementById("review-bars").innerHTML = [5,4,3,2,1].map(star => `
           <div class="bar">
             <span class="bar-label">${star}점</span>
@@ -75,18 +82,15 @@
         sortReviews('date');
       });
 
-    function renderReviewList(sorted) {
-      document.getElementById("review-list").innerHTML = sorted.map(r => `
-        <div class="review-item">
-          <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
-          <div class="review-text">${r.content}</div>
-          ${(r.images && r.images.length) ? `<div class="review-images">` + r.images.map(img => `<img src="${img}">`).join('') + `</div>` : ''}
-          <div class="review-meta">작성자: ${r.reviewer} / 작성일: ${r.date}</div>
-        </div>
-      `).join('');
-    }
-
     function sortReviews(type) {
+      currentSortType = type;
+      currentPage = 1;
+
+      ['date', 'latest', 'rating'].forEach(t => {
+        document.getElementById(`btn-${t}`).classList.remove('active');
+      });
+      document.getElementById(`btn-${type}`).classList.add('active');
+
       const sorted = [...reviews];
       if (type === 'date' || type === 'latest') {
         sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -94,6 +98,39 @@
         sorted.sort((a, b) => b.rating - a.rating);
       }
       renderReviewList(sorted);
+    }
+
+    function renderReviewList(sorted) {
+      const start = (currentPage - 1) * REVIEWS_PER_PAGE;
+      const paginated = sorted.slice(start, start + REVIEWS_PER_PAGE);
+
+      document.getElementById("review-list").innerHTML = paginated.map(r => `
+        <div class="review-item">
+          <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+          <div class="review-text">${r.content}</div>
+          ${(r.images && r.images.length) ? `<div class="review-images">` + r.images.map(img => `<img src="${img}">`).join('') + `</div>` : ''}
+          <div class="review-meta">작성자: ${r.reviewer} / 작성일: ${r.date}</div>
+        </div>
+      `).join('');
+
+      renderPagination(sorted.length);
+    }
+
+    function renderPagination(total) {
+      const pageCount = Math.ceil(total / REVIEWS_PER_PAGE);
+      const pagination = document.getElementById("pagination");
+      pagination.innerHTML = '';
+
+      for (let i = 1; i <= pageCount; i++) {
+        const btn = document.createElement("button");
+        btn.innerText = i;
+        if (i === currentPage) btn.classList.add("active");
+        btn.onclick = () => {
+          currentPage = i;
+          sortReviews(currentSortType);
+        };
+        pagination.appendChild(btn);
+      }
     }
   </script>
 </body>
